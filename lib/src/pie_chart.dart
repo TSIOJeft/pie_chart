@@ -33,6 +33,7 @@ class PieChart extends StatefulWidget {
     this.degreeOptions = const DegreeOptions(),
     this.baseChartColor = Colors.transparent,
     this.totalValue,
+    this.showTitleWithValues,
   }) : super(key: key);
 
   final Map<String, double> dataMap;
@@ -58,7 +59,7 @@ class PieChart extends StatefulWidget {
   final Map<String, String> legendLabels;
   final Color baseChartColor;
   final double? totalValue;
-
+final bool? showTitleWithValues;
   @override
   // ignore: library_private_types_in_public_api
   _PieChartState createState() => _PieChartState();
@@ -152,6 +153,7 @@ class _PieChartState extends State<PieChart>
                     emptyColor: widget.emptyColor,
                     gradientList: widget.gradientList,
                     emptyColorGradient: widget.emptyColorGradient,
+                    showTitleWithValues: widget.showTitleWithValues,
                     degreeOptions: widget.degreeOptions.copyWith(
                       // because we've deprecated initialAngleInDegree,
                       // we want the old value to be used if it's not null

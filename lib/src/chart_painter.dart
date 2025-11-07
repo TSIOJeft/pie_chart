@@ -29,8 +29,9 @@ class PieChartPainter extends CustomPainter {
   final DegreeOptions degreeOptions;
   final Color baseChartColor;
   final double? totalValue;
-
+  final bool? showTitleWithValues;
   late double _prevAngle;
+  List<String>? titles;
 
   double get drawPercentage => degreeOptions.totalDegrees / fullDegree;
 
@@ -42,7 +43,7 @@ class PieChartPainter extends CustomPainter {
     this.chartValueStyle,
     this.chartValueBackgroundColor,
     required List<double> values,
-    List<String>? titles,
+    this.titles,
     this.showValuesInPercentage,
     this.decimalPlaces,
     this.showChartValueLabel,
@@ -57,6 +58,7 @@ class PieChartPainter extends CustomPainter {
     this.degreeOptions = const DegreeOptions(),
     required this.baseChartColor,
     this.totalValue,
+    this.showTitleWithValues,
   }) {
     // set total value
     if (totalValue == null) {
@@ -98,7 +100,10 @@ class PieChartPainter extends CustomPainter {
     // this is not a precise calculation, should be more generalized later
     // e.g. (-90, 91) should start from the left
 
-    final left = degreeOptions.initialAngle >= -90 && degreeOptions.totalDegrees <= 180 ? -size.width / 2 : 0.0;
+    final left =
+        degreeOptions.initialAngle >= -90 && degreeOptions.totalDegrees <= 180
+            ? -size.width / 2
+            : 0.0;
 
     const top = 0.0;
 
@@ -131,9 +136,11 @@ class PieChartPainter extends CustomPainter {
       );
     } else {
       final isGradientPresent = gradientList?.isNotEmpty ?? false;
-      final isNonGradientElementPresent = (_subParts.length - (gradientList?.length ?? 0)) > 0;
+      final isNonGradientElementPresent =
+          (_subParts.length - (gradientList?.length ?? 0)) > 0;
 
       for (int i = 0; i < _subParts.length; i++) {
+   
         if (isGradientPresent) {
           final endAngle = (((_totalAngle) / _total) * _subParts[i]);
           final paint = Paint();
@@ -144,7 +151,8 @@ class PieChartPainter extends CustomPainter {
             transform: GradientRotation(normalizedPrevAngle),
             endAngle: normalizedEndAngle,
             colors: getGradient(gradientList!, i,
-                isNonGradientElementPresent: isNonGradientElementPresent, emptyColorGradient: emptyColorGradient!),
+                isNonGradientElementPresent: isNonGradientElementPresent,
+                emptyColorGradient: emptyColorGradient!),
           );
           paint.shader = gradient.createShader(boundingSquare);
           if (chartType == ChartType.ring) {
@@ -168,9 +176,9 @@ class PieChartPainter extends CustomPainter {
             _paintList[i],
           );
         }
-
-        final radius = showChartValuesOutside ? (side / 2) + 16 : side / 3;
-        final radians = _prevAngle + (((_totalAngle / _total) * _subParts[i]) / 2);
+     final radius = showChartValuesOutside ? (side-16 ): side / 3;
+        final radians =
+            _prevAngle + (((_totalAngle / _total) * _subParts[i]) / 2);
         final x = (radius) * math.cos(radians);
         final y = (radius) * math.sin(radians);
 
@@ -180,11 +188,17 @@ class PieChartPainter extends CustomPainter {
               : _subParts.elementAt(i).toStringAsFixed(decimalPlaces!);
 
           if (showChartValues) {
-            final name = showValuesInPercentage == true
+            var name = showValuesInPercentage == true
                 ? formatChartValues != null
                     ? ('${formatChartValues!((_subParts.elementAt(i) / _total) * 100)}%')
                     : ('${((_subParts.elementAt(i) / _total) * 100).toStringAsFixed(decimalPlaces!)}%')
                 : value;
+            if (showTitleWithValues == true) {
+              name = titles != null && titles!.length > i
+                  ? '${titles![i]}: $name'
+                  : name;
+            }
+
             _drawName(canvas, name, x, y, side);
           }
         }
@@ -201,6 +215,7 @@ class PieChartPainter extends CustomPainter {
     _drawName(canvas, centerText, 0, 0, side, style: centerTextStyle);
   }
 
+  final List<Rect> _labelRects = [];
   void _drawName(
     Canvas canvas,
     String? name,
@@ -213,36 +228,33 @@ class PieChartPainter extends CustomPainter {
       style: style ?? chartValueStyle,
       text: name,
     );
+
     TextPainter tp = TextPainter(
       text: span,
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     );
     tp.layout();
-
+    double drawX = (side / 2 + x) - (tp.width / 2);
+    double drawY = (side / 2 + y) - (tp.height / 2);
+    Rect rect = Rect.fromLTWH(drawX, drawY, tp.width, tp.height);
+    while (_labelRects.any((r) => r.overlaps(rect))) {
+      drawY += 8;
+      rect = Rect.fromLTWH(drawX, drawY, tp.width, tp.height);
+    }
+    _labelRects.add(rect);
     if (showChartValueLabel!) {
-      //Draw text background box
-      final rect = Rect.fromCenter(
-        center: Offset((side / 2 + x), (side / 2 + y)),
-        width: tp.width + 6,
-        height: tp.height + 4,
-      );
-      final rRect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+      final bgRect = rect.inflate(3);
+      final rRect = RRect.fromRectAndRadius(bgRect, const Radius.circular(4));
       final paint = Paint()
         ..color = chartValueBackgroundColor ?? Colors.grey[200]!
         ..style = PaintingStyle.fill;
       canvas.drawRRect(rRect, paint);
     }
-    //Finally paint the text above box
-    tp.paint(
-      canvas,
-      Offset(
-        (side / 2 + x) - (tp.width / 2),
-        (side / 2 + y) - (tp.height / 2),
-      ),
-    );
+    tp.paint(canvas, Offset(rect.left, rect.top));
   }
 
   @override
-  bool shouldRepaint(PieChartPainter oldDelegate) => oldDelegate._totalAngle != _totalAngle;
+  bool shouldRepaint(PieChartPainter oldDelegate) =>
+      oldDelegate._totalAngle != _totalAngle;
 }
