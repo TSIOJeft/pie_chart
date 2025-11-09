@@ -1,4 +1,4 @@
-# Pie Chart Plus
+# Pie Chart Max
 
 edit from apgapg/pie_chart because author already not accept any pullrequest 2 years. So I fork the package and add some feature.
 

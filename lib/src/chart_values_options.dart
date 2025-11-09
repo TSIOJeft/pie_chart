@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pie_chart_plus/pie_chart_plus.dart';
-import 'package:pie_chart_plus/src/utils.dart';
+import 'package:pie_chart_max/pie_chart_max.dart';
+import 'package:pie_chart_max/src/utils.dart';
 
 class ChartValuesOptions {
   final bool showChartValueBackground;

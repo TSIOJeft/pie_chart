@@ -1,7 +1,7 @@
-name: pie_chart_plus
+name: pie_chart_max
 description: A Flutter package for creating beautiful Pie Charts with awesome animation. And Edit from apgapg/pie_chart.
 version: 0.0.1
-homepage: https://github.com/TSIOJeft/pie_chart_plus
+homepage: https://github.com/TSIOJeft/pie_chart_max
 
 environment:
   sdk: '>=2.12.0 <4.0.0'

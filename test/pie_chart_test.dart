@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pie_chart_plus/pie_chart_plus.dart';
-import 'package:pie_chart_plus/src/chart_painter.dart';
-import 'package:pie_chart_plus/src/legend.dart';
+import 'package:pie_chart_max/pie_chart_max.dart';
+import 'package:pie_chart_max/src/chart_painter.dart';
+import 'package:pie_chart_max/src/legend.dart';
 
 void main() {
   final dataMap = <String, double>{};
