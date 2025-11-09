@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pie_chart/pie_chart.dart';
+import 'package:pie_chart_plus/pie_chart_plus.dart';
 
 class LegendOptions {
   final bool showLegends;

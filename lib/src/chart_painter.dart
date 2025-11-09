@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:pie_chart/pie_chart.dart';
+import 'package:pie_chart_plus/pie_chart_plus.dart';
 
 const doublePi = math.pi * 2;
 
@@ -32,6 +32,7 @@ class PieChartPainter extends CustomPainter {
   final bool? showTitleWithValues;
   late double _prevAngle;
   List<String>? titles;
+  bool drawValueLine = false;
 
   double get drawPercentage => degreeOptions.totalDegrees / fullDegree;
 
@@ -59,6 +60,7 @@ class PieChartPainter extends CustomPainter {
     required this.baseChartColor,
     this.totalValue,
     this.showTitleWithValues,
+    this.drawValueLine = false,
   }) {
     // set total value
     if (totalValue == null) {
@@ -140,13 +142,13 @@ class PieChartPainter extends CustomPainter {
           (_subParts.length - (gradientList?.length ?? 0)) > 0;
 
       for (int i = 0; i < _subParts.length; i++) {
-   
         if (isGradientPresent) {
           final endAngle = (((_totalAngle) / _total) * _subParts[i]);
           final paint = Paint();
 
           final normalizedPrevAngle = (_prevAngle - 0.15) % doublePi;
           final normalizedEndAngle = (endAngle + 0.15) % doublePi;
+
           final Gradient gradient = SweepGradient(
             transform: GradientRotation(normalizedPrevAngle),
             endAngle: normalizedEndAngle,
@@ -176,7 +178,9 @@ class PieChartPainter extends CustomPainter {
             _paintList[i],
           );
         }
-     final radius = showChartValuesOutside ? (side-16 ): side / 3;
+        final ratio = _subParts[i] / _total;
+        final radius =
+            showChartValuesOutside ? (side / 2 + strokeWidth! * 2) : side / 3;
         final radians =
             _prevAngle + (((_totalAngle / _total) * _subParts[i]) / 2);
         final x = (radius) * math.cos(radians);
@@ -198,10 +202,20 @@ class PieChartPainter extends CustomPainter {
                   ? '${titles![i]}: $name'
                   : name;
             }
-
-            _drawName(canvas, name, x, y, side);
+            if (drawValueLine) {
+              _drawName(canvas, name, x, y, side, angle: radians);
+            } else {
+              _drawName(
+                canvas,
+                name,
+                x,
+                y,
+                side,
+              );
+            }
           }
         }
+
         _prevAngle = _prevAngle + (((_totalAngle) / _total) * _subParts[i]);
       }
     }
@@ -223,6 +237,7 @@ class PieChartPainter extends CustomPainter {
     double y,
     double side, {
     TextStyle? style,
+    double? angle,
   }) {
     final span = TextSpan(
       style: style ?? chartValueStyle,
@@ -235,11 +250,14 @@ class PieChartPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     tp.layout();
-    double drawX = (side / 2 + x) - (tp.width / 2);
-    double drawY = (side / 2 + y) - (tp.height / 2);
+    double drawX = (side / 2 + x) - tp.width / 2;
+    double drawY = (side / 2 + y) - tp.height / 2;
+    // drawX=drawX+(drawX <= side / 2 ? tp.width : -tp.width);
+    // drawY=drawY+(drawY <= side / 2 ? tp.height : -tp.height);
     Rect rect = Rect.fromLTWH(drawX, drawY, tp.width, tp.height);
     while (_labelRects.any((r) => r.overlaps(rect))) {
-      drawY += 8;
+      drawY -= 4;
+
       rect = Rect.fromLTWH(drawX, drawY, tp.width, tp.height);
     }
     _labelRects.add(rect);
@@ -252,6 +270,37 @@ class PieChartPainter extends CustomPainter {
       canvas.drawRRect(rRect, paint);
     }
     tp.paint(canvas, Offset(rect.left, rect.top));
+
+    if (angle != null) {
+      drawX = drawX + tp.width / 2;
+      drawY = drawY + tp.height / 2;
+      // drawY = drawY + (drawY < (side / 2) ? -tp.height : tp.height) / 2;
+      final lineEndX = side / 2 + (side / 2 + strokeWidth!) * math.cos(angle);
+      final lineEndY = side / 2 + (side / 2 + strokeWidth!) * math.sin(angle);
+      final target = Offset(lineEndX, lineEndY);
+      final origin = Offset(
+          side / 2 + (side / 2 + strokeWidth! / 2) * math.cos(angle),
+          side / 2 + (side / 2 + strokeWidth! / 2) * math.sin(angle));
+      _drawLine(canvas, origin, target);
+      var horizontalLineEndX = drawX;
+      var horizontalLineEndY =
+          drawY + (drawY < lineEndY ? 1 : -1) * (tp.height / 2);
+      if ((horizontalLineEndY - lineEndY).abs() > 10) {
+        final lineTarget = Offset(
+          horizontalLineEndX,
+          horizontalLineEndY,
+        );
+        _drawLine(canvas, target, lineTarget);
+      }
+    }
+  }
+
+  void _drawLine(Canvas canvas, Offset origin, Offset target) {
+    final linePaint = Paint()
+      ..color = Colors.blueGrey[400]!
+      ..strokeWidth = 1.0;
+
+    canvas.drawLine(origin, target, linePaint);
   }
 
   @override
