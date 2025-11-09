@@ -4,7 +4,7 @@ edit from apgapg/pie_chart because author already not accept any pullrequest 2 y
 
 [pie_chart](https://pub.dev/packages/pie_chart)
 
-![shoot](https://github.com/TSIOJeft/pie_chart/tree/master/screen_shots/shoot.png)
+![shoot](https://github.com/TSIOJeft/pie_chart/tree/master/screen_shots/shoot.PNG)
 
 ## 😄
 
