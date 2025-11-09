@@ -178,7 +178,7 @@ class PieChartPainter extends CustomPainter {
             _paintList[i],
           );
         }
-        final ratio = _subParts[i] / _total;
+
         final radius =
             showChartValuesOutside ? (side / 2 + strokeWidth! * 2) : side / 3;
         final radians =
